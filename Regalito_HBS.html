@@ -15,7 +15,7 @@
             font-family: 'Quicksand', sans-serif;
             overflow-x: hidden;
             cursor: crosshair;
-            perspective: 1000px; /* Necesario para el efecto 3D */
+            perspective: 1000px;
         }
 
         /* Abeja cursor */
@@ -40,7 +40,7 @@
             z-index: 10;
         }
 
-        /* ESTILOS DE TARJETAS (Bienvenida y Quiz) */
+        /* TARJETAS */
         .welcome-card, .quiz-card {
             background: rgba(255, 255, 255, 0.95);
             padding: 40px;
@@ -53,7 +53,6 @@
             overflow: hidden;
         }
 
-        /* Decoración de esquina */
         .card-corner {
             position: absolute;
             top: -20px;
@@ -72,7 +71,7 @@
             text-shadow: 1px 1px 0px #fff;
         }
 
-        /* BOTONES QUIZ */
+        /* BOTONES */
         .quiz-option {
             display: block;
             width: 100%;
@@ -96,7 +95,7 @@
 
         .hidden { display: none; }
 
-        /* LÍNEA DE TIEMPO CON EFECTO 3D */
+        /* LÍNEA DE TIEMPO */
         .timeline {
             position: relative;
             margin-top: 60px;
@@ -120,35 +119,32 @@
             width: 100%;
             display: flex;
             justify-content: center;
-            perspective: 1500px; /* Profundidad 3D */
+            perspective: 1500px;
         }
 
-        /* EL CONTENIDO DE LA CARTA QUE SE ABRE */
         .timeline-content {
             background: white;
             padding: 25px;
             border-radius: 15px;
             width: 90%; 
-            max-width: 550px;
+            max-width: 600px; /* Un poco más ancho para fotos grandes */
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             text-align: left;
             position: relative;
             border-bottom: 5px solid #FFD700;
             
-            /* ESTADO INICIAL: CARTA CERRADA (Rotada) */
+            /* Animación 3D inicial */
             opacity: 0;
             transform-origin: top center;
             transform: rotateX(-90deg); 
             transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease;
         }
 
-        /* ESTADO FINAL: CARTA ABIERTA */
         .timeline-item.visible .timeline-content {
             opacity: 1;
-            transform: rotateX(0deg); /* Se abre hacia abajo */
+            transform: rotateX(0deg);
         }
 
-        /* Icono flotante encima de la carta */
         .timeline-icon {
             position: absolute;
             left: 50%;
@@ -167,16 +163,21 @@
             box-shadow: 0 5px 10px rgba(0,0,0,0.1);
         }
 
-        /* MARCO DE FOTOS POLAROID */
+        /* MARCO POLAROID AJUSTADO PARA FOTOS LARGAS */
         .photo-frame {
             width: 100%;
+            /* Aumentamos altura máxima para fotos 1920px */
+            max-height: 650px; 
             background-color: #fff;
             padding: 10px;
-            padding-bottom: 30px; /* Estilo Polaroid */
+            padding-bottom: 30px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-bottom: 15px;
             transform: rotate(-1deg);
             transition: transform 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .photo-frame:hover {
@@ -184,7 +185,9 @@
         }
         
         .photo-frame img {
-            width: 100%;
+            max-width: 100%;
+            max-height: 100%; /* Ajusta al alto del contenedor */
+            width: auto;      /* Mantiene proporción */
             height: auto;
             display: block;
             border: 1px solid #eee;
@@ -194,11 +197,9 @@
             font-size: 1.1rem;
             line-height: 1.6;
             color: #444;
-            font-family: 'Indie Flower', cursive, sans-serif; /* Intento de letra a mano si la tiene, si no usa sans */
             font-style: italic;
         }
 
-        /* Mensaje de error gracioso */
         #error-msg {
             margin-top: 15px;
             font-weight: bold;
@@ -237,13 +238,11 @@
 </head>
 <body>
 
-    <!-- AUDIO -->
     <audio id="bgMusic" loop>
         <source src="Music_Background.mp3" type="audio/mpeg">
         <source src="Music_Background.mp3" type="audio/mp3">
     </audio>
 
-    <!-- ABEJA -->
     <div id="cursor-bee">🐝</div>
 
     <div class="container">
@@ -254,7 +253,7 @@
             <h1 style="color:#e67e22;">¡Hola Silvia!</h1>
             <p style="font-size: 1.3rem;">De Ecuador 🇪🇨 para Rusia 🇷🇺</p>
             <p>Hay un regalo digital esperándote...</p>
-            <p style="color:#888; font-size:0.9rem;">(Pista: Haz clic en el fondo para plantar flores mientras piensas 🌸)</p>
+            <p style="color:#888; font-size:0.9rem;">(Pista: Haz clic en el fondo para plantar flores 🌸)</p>
             <br>
             <button class="quiz-option" onclick="nextStep()" style="background:#FFD700; color:#333; border:none; font-weight:bold; font-size:1.3rem; box-shadow: 0 4px 0 #cfaf00;">
                 Abrir Regalo 🎁
@@ -278,9 +277,7 @@
             <h1 style="margin-top:20px; color:#d35400;">¡Feliz Cumpleaños!</h1>
             <p>Desliza para abrir tus cartas 👇</p>
             
-            <div class="timeline" id="gallery-container">
-                <!-- Javascript generará las cartas aquí -->
-            </div>
+            <div class="timeline" id="gallery-container"></div>
 
             <div style="margin-top:80px; padding-bottom:50px;">
                 <h2>💛 Te extrañamos mucho 💛</h2>
@@ -289,21 +286,33 @@
     </div>
 
     <script>
-        // --- 1. DATOS DE LAS CARTAS ---
+        // --- CONFIGURACIÓN DE DATOS ---
+        // 'ext': define si es png o jpg. Si no pones nada, asume jpg.
         const timelineData = [
             { 
                 id: 1, 
                 title: "La Esencia",
+                ext: "png", // IMAGEN PNG
                 text: "Que estemos lejos me ha enseñado que las amistades verdaderas no se miden por la frecuencia, sino por la esencia. Y resulta que la nuestra es de esas que, cuando nos volvemos a encontrar, es como si el tiempo no hubiera pasado y el cariño sigue intacto." 
             },
             { id: 2, title: "Momentos", text: "Coleccionando sonrisas y buenos tiempos que valen oro." },
-            { id: 3, title: "Aventuras", text: "Cada foto es una historia que vale la pena recordar una y otra vez." },
+            { 
+                id: 3, 
+                title: "Aventuras", 
+                ext: "png", // IMAGEN PNG
+                text: "Cada foto es una historia que vale la pena recordar una y otra vez." 
+            },
             { 
                 id: 4, 
                 title: "Tu Magia",
                 text: "Gracias por ser la alegría de esos días grises, por tus locuras, por esa magia que solo tú tienes." 
             },
-            { id: 5, title: "Risas", text: "La felicidad se ve mejor cuando es compartida (y con un poco de locura)." },
+            { 
+                id: 5, 
+                title: "Risas", 
+                ext: "png", // IMAGEN PNG
+                text: "La felicidad se ve mejor cuando es compartida (y con un poco de locura)." 
+            },
             { 
                 id: 6, 
                 title: "Random",
@@ -328,12 +337,14 @@
             }
         ];
 
-        // --- 2. GENERAR HTML ---
+        // --- GENERADOR ---
         const galleryContainer = document.getElementById('gallery-container');
         const icons = ['🌻', '🐝', '✨', '💛', '🌸', '📸'];
 
         timelineData.forEach((item, index) => {
             const icon = icons[index % icons.length];
+            // Si el item tiene 'ext', usa esa extensión, si no, usa 'jpg' por defecto
+            const extension = item.ext || 'jpg';
             
             const html = `
                 <div class="timeline-item">
@@ -341,7 +352,7 @@
                         <div class="timeline-icon">${icon}</div>
                         <h3 style="color:#d35400; margin-top:15px;">${item.title}</h3>
                         <div class="photo-frame">
-                            <img src="images/FCS_${item.id}.jpg" alt="Foto ${item.id}" onerror="this.src='https://via.placeholder.com/400x300?text=Cargando+Recuerdo...'">
+                            <img src="images/FCS_${item.id}.${extension}" alt="Foto ${item.id}" onerror="this.src='https://via.placeholder.com/400x600?text=Error+Carga'">
                         </div>
                         <p class="note-text">"${item.text}"</p>
                     </div>
@@ -350,9 +361,7 @@
             galleryContainer.innerHTML += html;
         });
 
-        // --- 3. INTERACCIÓN ---
-
-        // Abeja Seguidora
+        // --- INTERACCIÓN ---
         const bee = document.getElementById('cursor-bee');
         let mouseX = 0, mouseY = 0;
         let beeX = 0, beeY = 0;
@@ -362,7 +371,6 @@
             mouseY = e.clientY;
         });
 
-        // Animación suave de la abeja (delay)
         function animateBee() {
             beeX += (mouseX - beeX) * 0.1;
             beeY += (mouseY - beeY) * 0.1;
@@ -372,7 +380,6 @@
         }
         animateBee();
 
-        // Plantar flores
         document.addEventListener('click', (e) => {
             if(e.target.tagName === 'BUTTON') return;
             const flower = document.createElement('div');
@@ -385,7 +392,6 @@
             document.body.appendChild(flower);
         });
 
-        // Lógica del Quiz
         function nextStep() {
             document.getElementById('step1').classList.add('hidden');
             document.getElementById('step2').classList.remove('hidden');
@@ -407,20 +413,14 @@
         function correctAnswer() {
             document.getElementById('step2').classList.add('hidden');
             document.getElementById('step3').classList.remove('hidden');
-            
-            // Música
             const audio = document.getElementById('bgMusic');
             audio.volume = 0.6;
             audio.play().catch(e => console.log("Audio requiere toque previo"));
-
             celebrate();
-            
-            // Forzar chequeo de scroll para abrir la primera carta
             setTimeout(revealItems, 300);
         }
 
         function celebrate() {
-            // Lluvia de confeti
             for(let i=0; i<40; i++) {
                 setTimeout(() => {
                     const el = document.createElement('div');
@@ -432,35 +432,26 @@
                     el.style.transition = 'top 3s ease-in, transform 3s linear';
                     el.style.zIndex = '100';
                     document.body.appendChild(el);
-                    
-                    // Trigger animación
                     setTimeout(() => { 
                         el.style.top = '110vh'; 
                         el.style.transform = `rotate(${Math.random() * 360}deg)`;
                     }, 50);
-                    
                     setTimeout(() => el.remove(), 3100);
                 }, i * 80);
             }
         }
 
-        // --- 4. ANIMACIÓN DE APERTURA DE CARTAS (Scroll) ---
         window.addEventListener('scroll', revealItems);
 
         function revealItems() {
             const items = document.querySelectorAll('.timeline-item');
             const windowHeight = window.innerHeight;
-            const elementVisible = 150; // Distancia desde abajo para activar
+            const elementVisible = 150;
 
             items.forEach(item => {
                 const elementTop = item.getBoundingClientRect().top;
-                
-                // Si el elemento entra en pantalla
                 if (elementTop < windowHeight - elementVisible) {
                     item.classList.add('visible');
-                } else {
-                    // Opcional: Si quieres que se cierren al subir de nuevo, descomenta esto:
-                    // item.classList.remove('visible'); 
                 }
             });
         }
